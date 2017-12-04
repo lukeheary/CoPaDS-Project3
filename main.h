@@ -16,10 +16,14 @@ typedef struct {
   int *cellsAround;
   int **grid;
 
+  int targetR;
+  int targetC;
+
 } robot;
 
 int **createGrid(int length, int width);
 void printGrid(int length, int width, int **grid);
 
-pthread_t * createRobots(int numberOfRobots, int length, int width, int **grid);
-void moveRobot(robot *r);
+robot * createRobots(int numberOfRobots, int length, int width, int **grid);
+int **moveRobot(robot *r, robot *robots, int numberOfRobots);
+void robotSearchAround(robot *r);

@@ -9,18 +9,24 @@
 #include <stdbool.h>
 #include "main.h"
 
-void robotSearchAround(int rows, int columns, int **grid, int currentR, int currentC, int robotNumber, int *cellsAround) { 
- 
+void robotSearchAround(robot *r) { 
+
+  int rows = r->rows;
+  int columns = r->columns;
+  int **grid = r->grid;
+  int C = r->currentR;
+  int R = r->currentC;
+  int robotNumber = r->robotNumber;
+  int *cellsAround = r->cellsAround;
+
   int tl=0, tm=0, tr=0, ml=0, mr=0, bl=0, bm=0, br=0;
-  int C = currentR;
-  int R = currentC;
   bool bottomRow = true, topRow = true, rightColumn = true, leftColumn = true;
 
   // check to see if the robot is on the edge of the grid
-  if(R + 1 == columns) { 	bottomRow = false;}
-  if(R - 1 < 0) { 		topRow = false; }
-  if(C + 1 == rows) { 		rightColumn = false; }
-  if(C - 1 < 0) { 		leftColumn = false; }  
+  if(R + 1 == columns) { 	bottomRow = false; bl = 4; bm = 4; br = 4;}
+  if(R - 1 < 0) { 		topRow = false; tl = 4; tm = 4; tr = 4;}
+  if(C + 1 == rows) { 		rightColumn = false; tr = 4; mr = 4; br = 4;}
+  if(C - 1 < 0) { 		leftColumn = false; tl = 4; ml = 4; bl = 4;}  
 
   // check around the robot to see if anything is near
   if(topRow) {
@@ -66,34 +72,83 @@ void robotSearchAround(int rows, int columns, int **grid, int currentR, int curr
     }								
   }
 
-  //for (int i = 0; i < 8; i++) {
-    //printf("%d", cellsAround[i]);
-  //}
+  if(R + 1 == columns) { 	cellsAround[2] = 4; cellsAround[4] = 4; cellsAround[7] = 4;}
+  if(R - 1 < 0) { 		cellsAround[0] = 4; cellsAround[3] = 4; cellsAround[5] = 4;}
+  if(C + 1 == rows) { 		cellsAround[5] = 4; cellsAround[6] = 4; cellsAround[7] = 4;}
+  if(C - 1 < 0) { 		cellsAround[0] = 4; cellsAround[1] = 4; cellsAround[2] = 4;}  
 
-  //printf("\n%d: (%d, %d), %d %d %d %d %d %d %d %d\n", robotNumber, C, R, tl, ml, bl, tm, bm, tr, mr, br);
+  r->cellsAround = cellsAround;
+}
+
+void alert(robot *robots, int numberOfRobots, int cell) {
+
+  // take in the coords of target, loop through list of robots, fill in the target coords in each robot struct, have all robots travel to target 
+
+  printf("\n\nTARGET FOUND, BROADCASTING TO ROBOTS\n\n");
+
+  for(int i = 0; i < numberOfRobots; i++) {
+    //&robots[i]->targetR = 
+  }
+
+  exit(0);
 }
 
 
-void moveRobot(robot *r) {
+int **moveRobot(robot *r, robot *robots, int numberOfRobots) {
 
-  
+  //printf("cur robot: %d, numofmoves: %d", r->robotNumber, r->numberOfMoves);
 
-  int x = (*r).robotNumber;
-  printf("cur robot: %d", x);
+  // set current robot cell to blank
+  r->grid[r->currentR][r->currentC] = 0;
   
-  return;
+  int x = r->numberOfMoves % 4;
+
+  if(x == 0 && r->cellsAround[6] != 4) {
+    r->currentR++;		// right
+  } else if (x == 1 && r->cellsAround[3] != 4) {
+    r->currentC++;		// up
+  } else if (x == 2 && r->cellsAround[1] != 4) {
+    r->currentR--;		// left
+  } else if (x == 3 && r->cellsAround[4] != 4) {
+    r->currentC--;		// down;
+  }
+
+  r->grid[r->currentR][r->currentC] = 2;
+  r->numberOfMoves++;
+
+  for (int i = 0; i < 8; i++) {
+    if(r->cellsAround[i] == 1) {
+        int currentRobotR = r->currentR;
+        int currentRobotC = r->currentC;
+
+        switch(i)
+          case '0':
+          case '1':
+          case '2':
+          case '3':
+          case '4':
+          case '5':
+          case '6':
+          case '7':
+
+	alert(robots, numberOfRobots, i);
+    }
+    printf("%d", r->cellsAround[i]);
+  } printf(", ");
+
+  return r->grid;
 }
 
 
 
 void * robotCommander(void *currentRobot) {
   robot *r = (robot *) currentRobot;
-  robotSearchAround(r->rows, r->columns, r->grid, r->currentR, r->currentC, r->robotNumber, r->cellsAround);
+  robotSearchAround(r);
   return r;
 }
 
 
-pthread_t * createRobots(int numberOfRobots, int rows, int columns, int **grid) {
+robot * createRobots(int numberOfRobots, int rows, int columns, int **grid) {
 
   pthread_t *robots;
   robot *currentRobot;
@@ -128,7 +183,7 @@ pthread_t * createRobots(int numberOfRobots, int rows, int columns, int **grid) 
     pthread_create(&robots[i], NULL, robotCommander, (void *)(currentRobot+i));
   }
 
-  return robots;
+  return currentRobot;
 }
 
 

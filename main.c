@@ -70,16 +70,18 @@ int main(void) {
   scanf("%i", &numberOfRobots);
 
   int **grid = createGrid(rows, columns);
-  pthread_t *robots = createRobots(numberOfRobots, rows, columns, grid);
+  robot *robots = createRobots(numberOfRobots, rows, columns, grid);
 
   // start cycling through moves
 
   //for loop for move number
-  for(int moveNum = 0; moveNum < 2; moveNum++) {
+  for(int moveNum = 0; moveNum < 3; moveNum++) {
 
     //for loop for individual robot move
     for(int robotNum = 0; robotNum < numberOfRobots; robotNum++) {
-      moveRobot((robot *)robots[robotNum]);
+      grid = moveRobot(&robots[robotNum], robots, numberOfRobots);
+      robotSearchAround(&robots[robotNum]);
+
     }
 
     printGrid(rows, columns, grid);
@@ -88,7 +90,7 @@ int main(void) {
 
 
   for(int i = 0; i < numberOfRobots; i++) {
-    pthread_join(robots[i], NULL);
+    //pthread_join(robots[i], NULL);
   }
 
   
