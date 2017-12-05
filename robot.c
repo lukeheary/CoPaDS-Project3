@@ -9,6 +9,31 @@
 #include <stdbool.h>
 #include "main.h"
 
+
+void alert(robot *robots, int numberOfRobots, int targetR, int targetC) {
+
+  // take in the coords of target, loop through list of robots, fill in the target coords in each robot struct, have all robots travel to target 
+
+  printf("\n\nTARGET FOUND, BROADCASTING TO ROBOTS\n\n");
+
+  for(int i = 0; i < numberOfRobots; i++) {
+    robots[i].targetR = targetR;
+    robots[i].targetC = targetC;
+    //printf("(%d, %d)", robots[i].targetR, robots[i].targetC); 
+  }
+  exit(0);
+}
+
+
+void moveRobotsToTarget(&robots[robotNum], robots, numberOfRobots) {
+
+}
+
+
+
+
+
+
 void robotSearchAround(robot *r) { 
 
   int rows = r->rows;
@@ -77,40 +102,42 @@ void robotSearchAround(robot *r) {
   if(C + 1 == rows) { 		cellsAround[5] = 4; cellsAround[6] = 4; cellsAround[7] = 4;}
   if(C - 1 < 0) { 		cellsAround[0] = 4; cellsAround[1] = 4; cellsAround[2] = 4;}  
 
+  //printf("current: (%d, %d)", r->currentR, r->currentC);
+
   r->cellsAround = cellsAround;
 }
 
-void alert(robot *robots, int numberOfRobots, int cell) {
-
-  // take in the coords of target, loop through list of robots, fill in the target coords in each robot struct, have all robots travel to target 
-
-  printf("\n\nTARGET FOUND, BROADCASTING TO ROBOTS\n\n");
-
-  for(int i = 0; i < numberOfRobots; i++) {
-    //&robots[i]->targetR = 
-  }
-
-  exit(0);
-}
-
-
-int **moveRobot(robot *r, robot *robots, int numberOfRobots) {
-
-  //printf("cur robot: %d, numofmoves: %d", r->robotNumber, r->numberOfMoves);
+bool moveRobot(robot *r, robot *robots, int numberOfRobots) {
 
   // set current robot cell to blank
   r->grid[r->currentR][r->currentC] = 0;
-  
-  int x = r->numberOfMoves % 4;
 
-  if(x == 0 && r->cellsAround[6] != 4) {
-    r->currentR++;		// right
-  } else if (x == 1 && r->cellsAround[3] != 4) {
-    r->currentC++;		// up
-  } else if (x == 2 && r->cellsAround[1] != 4) {
-    r->currentR--;		// left
-  } else if (x == 3 && r->cellsAround[4] != 4) {
-    r->currentC--;		// down;
+  // IF the robot is on a corner, make them move one cell inward to be more efficient
+  if(r->currentR == r->rows - 1 /** || r->grid[r->currentR - 1][r->currentC] == 3 **/) {
+    r->currentR--;
+    r->robotNumber++;
+  } else if (r->currentR == 0) {
+    r->currentR++;
+    r->robotNumber++;
+  } else if (r->currentC == r->columns - 1) {
+    r->currentC--;
+    r->robotNumber++;
+  } else if (r->currentC == 0) {
+    r->currentC++;
+    r->robotNumber++;
+  } else {
+
+    int x = r->robotNumber % 4;
+
+    if(x == 0) {
+      r->currentC++;
+    } else if(x == 2) {
+      r->currentC--;
+    } else if(x == 1) { 
+      r->currentR++;
+    } else if(x == 3) {
+      r->currentR--;
+    }
   }
 
   r->grid[r->currentR][r->currentC] = 2;
@@ -118,27 +145,36 @@ int **moveRobot(robot *r, robot *robots, int numberOfRobots) {
 
   for (int i = 0; i < 8; i++) {
     if(r->cellsAround[i] == 1) {
-        int currentRobotR = r->currentR;
-        int currentRobotC = r->currentC;
+        int targetR = r->currentR;
+        int targetC = r->currentC;
 
-        switch(i)
+        switch(i) {
           case '0':
+            targetR--; targetC--; break;
           case '1':
+            targetC--; break;
           case '2':
+            targetR++; targetC--; break;
           case '3':
+            targetR--; break;
           case '4':
+            targetR++; break;
           case '5':
+            targetR--; targetC++; break;
           case '6':
+            targetC++; break;
           case '7':
-
-	alert(robots, numberOfRobots, i);
+            targetR++; targetC++; break;
+          }
+        return true;
+	alert(robots, numberOfRobots, targetR, targetC);
     }
-    printf("%d", r->cellsAround[i]);
-  } printf(", ");
+    //printf("%d", r->cellsAround[i]);
+  } //printf(", ");
 
-  return r->grid;
+  //return r->grid;
+  return false;
 }
-
 
 
 void * robotCommander(void *currentRobot) {
@@ -176,6 +212,7 @@ robot * createRobots(int numberOfRobots, int rows, int columns, int **grid) {
     currentRobot[i].columns = columns;
     currentRobot[i].grid = grid;
     currentRobot[i].cellsAround = (int*)calloc(8, sizeof(int));
+    currentRobot[i].btml = false;
    
     // place robot on the grid 
     grid[currentRobot[i].initialR][currentRobot[i].initialC] = 2;
