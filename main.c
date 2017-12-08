@@ -27,12 +27,12 @@ void printGrid(int rows, int columns, int **grid) {
 
   printf("\n   ");
   for(int i = 0; i < columns; i++) {
-    //printf("%d  ", i);
+    printf("%d  ", i);
   }
   printf("\n");
 
   for(int x = 0; x < rows; x++) {
-    //printf("%d  ", x);
+    printf("%d  ", x);
     for(int y = 0; y < columns; y++) {
       if(grid[x][y] == 1) {
         printf("T  ");
@@ -97,36 +97,21 @@ int main(void) {
   printGrid(rows, columns, grid);
 
   //move robots and look around
-/**
   while(targetFound == false) {
     //for loop for individual robot move
-    for(int robotNum = 0; robotNum < numberOfRobots; robotNum++) {
-      if(targetFound == false) {
+    for(int robotNum = 0; robotNum < numberOfRobots; robotNum++) {    
+      if(targetFound == false) {  
         moveRobot(&robots[robotNum], numberOfRobots);
-        targetFound = robotSearchAround(&robots[robotNum]);
+        targetFound = robotSearchAround(&robots[robotNum]); 
       }
     }
     printGrid(rows, columns, grid);
   }
-*/
-
-  for(int robotNum = 0; robotNum < numberOfRobots; robotNum++) {
-    if(targetFound == false) {
-      moveRobot(&robots[robotNum], numberOfRobots);
-      targetFound = robotSearchAround(&robots[robotNum]);
-    }
-  printGrid(rows, columns, grid);
-  }
-   
-
-
-
 
   //TARGET FOUND
   alert(robots, numberOfRobots, targetR, targetC);
 
-  bool allRobotsAtTarget = false;
-  allRobotsAtTarget = checkRobots(robots, numberOfRobots);
+  bool allRobotsAtTarget = checkRobots(robots, numberOfRobots);
 
   while(allRobotsAtTarget == false) {
     for(int robotNum = 0; robotNum < numberOfRobots; robotNum++) {
