@@ -9,32 +9,109 @@
 #include <stdbool.h>
 #include "main.h"
 
-
+// alerts the robots to where the target is
+//
+// @param *robots		the list of robots
+// @param numberOfRobots	the number of robots
+// @param targetR		the row of the target
+// @param targetC		the col of the target
+// @return none
 void alert(robot *robots, int numberOfRobots, int targetR, int targetC) {
-
-  // take in the coords of target, loop through list of robots, fill in the target coords in each robot struct, have all robots travel to target 
 
   printf("\n\nTARGET FOUND, BROADCASTING TO ROBOTS\n\n");
 
   for(int i = 0; i < numberOfRobots; i++) {
     robots[i].targetR = targetR;
     robots[i].targetC = targetC;
-    //printf("(%d, %d)", robots[i].targetR, robots[i].targetC); 
   }
-  exit(0);
 }
 
+// moves all of the robots towards the target
+//
+// @param *r			pointer to current robot
+// @param numberOfRobots	the number of robots
+// @return none
+void moveRobotsToTarget(robot *r, int numberOfRobots) { 
 
-void moveRobotsToTarget(&robots[robotNum], robots, numberOfRobots) {
+  if(r->atTarget == false) {
+    
+    r->grid[r->currentR][r->currentC] = 3;
 
+    // move the robot towards the target
+    if(r->currentR > r->targetR) { 
+      if(r->grid[r->currentR - 1][r->currentC] == 2) {
+        r->touchingRobot = true;
+      } else if(r->grid[r->currentR - 1][r->currentC] == 1) {
+        r->atTarget = true;
+      } else {
+        r->currentR--;
+      }
+
+    } else if(r->currentR < r->targetR) {
+      if(r->grid[r->currentR + 1][r->currentC] == 2) {
+        r->touchingRobot = true;
+      } else if(r->grid[r->currentR + 1][r->currentC] == 1) {
+        r->atTarget = true;
+      } else {
+        r->currentR++;
+      }
+
+    } else if(r->currentC > r->targetC) {
+      if(r->grid[r->currentR][r->currentC - 1] == 2) {
+        r->touchingRobot = true;
+      } else if(r->grid[r->currentR][r->currentC - 1] == 1) {
+        r->atTarget = true;
+      } else {
+        r->currentC--;
+      }
+
+    } else if(r->currentC < r->targetC) {
+
+      if(r->grid[r->currentR][r->currentC + 1] == 2) {
+        r->touchingRobot = true;
+      } else if(r->grid[r->currentR][r->currentC + 1] == 1) {
+        r->atTarget = true;
+      } else {
+        r->currentC++;
+      }
+    }
+
+  if(r->touchingRobot == true && r->atTarget == false) {
+
+      if(r->currentC > r->targetC && r->atTarget == false && r->grid[r->currentC - 1][r->currentR - 1] != 2 && r->grid[r->currentC - 1][r->currentR - 1] != 1) {
+        r->currentR--;
+        r->currentC--;
+        r->atTarget = robotSearchAround(r);
+        //while(r->grid[r->currentC - 1][r->currentR] != 2) {
+          //r->currentC--;
+         // r->atTarget = robotSearchAround(r);
+        }
+      } else if(r->currentC < r->targetC && r->atTarget == false && r->grid[r->currentC + 1][r->currentR - 1] != 2 && r->grid[r->currentC + 1][r->currentR - 1] != 1) {
+        r->currentR--;
+        r->currentC++;
+        r->atTarget = robotSearchAround(r);
+
+      } else if(r->currentC > r->targetC && r->atTarget == false && r->grid[r->currentC - 1][r->currentR + 1] != 2 && r->grid[r->currentC - 1][r->currentR + 1] != 1) {
+        r->currentR++;
+        r->currentC--;
+        r->atTarget = robotSearchAround(r);
+
+      } else if(r->currentC > r->targetC && r->atTarget == false && r->grid[r->currentC + 1][r->currentR + 1] != 2 && r->grid[r->currentC + 1][r->currentR + 1] != 1) {
+        r->currentR++;
+        r->currentC++;
+        r->atTarget = robotSearchAround(r);
+      }
+    }
+  r->grid[r->currentR][r->currentC] = 2;
+  r->numberOfMoves++;
+  r->atTarget = robotSearchAround(r);
 }
 
-
-
-
-
-
-void robotSearchAround(robot *r) { 
+// searches the eight cells around a robot
+//
+// @param *r		pointer to current robot
+// @return 		true if target found, false if no target
+bool robotSearchAround(robot *r) { 
 
   int rows = r->rows;
   int columns = r->columns;
@@ -97,33 +174,60 @@ void robotSearchAround(robot *r) {
     }								
   }
 
-  if(R + 1 == columns) { 	cellsAround[2] = 4; cellsAround[4] = 4; cellsAround[7] = 4;}
-  if(R - 1 < 0) { 		cellsAround[0] = 4; cellsAround[3] = 4; cellsAround[5] = 4;}
-  if(C + 1 == rows) { 		cellsAround[5] = 4; cellsAround[6] = 4; cellsAround[7] = 4;}
-  if(C - 1 < 0) { 		cellsAround[0] = 4; cellsAround[1] = 4; cellsAround[2] = 4;}  
-
-  //printf("current: (%d, %d)", r->currentR, r->currentC);
-
   r->cellsAround = cellsAround;
+
+   for (int i = 0; i < 8; i++) {
+    if(r->cellsAround[i] == 1) {
+      r->atTarget = true;
+      return true;
+    } else if (r->cellsAround[i] == 2) {
+      r->touchingRobot = true;
+    }
+    //printf("%d", r->cellsAround[i]);
+  } //printf(", ");
+  return false;
 }
 
-bool moveRobot(robot *r, robot *robots, int numberOfRobots) {
+// moves the robot
+//
+// @param *r			pointer to current robot
+// @param numberOfRobots	the number of robots
+void moveRobot(robot *r, int numberOfRobots) {
 
   // set current robot cell to blank
   r->grid[r->currentR][r->currentC] = 0;
 
+  // WORKS, INEFFICIENT
+
+  int x = rand() % 8;
+  if(x == 2) {
+    r->robotNumber++;
+  }
+
   // IF the robot is on a corner, make them move one cell inward to be more efficient
-  if(r->currentR == r->rows - 1 /** || r->grid[r->currentR - 1][r->currentC] == 3 **/) {
-    r->currentR--;
+  if(r->currentR == r->rows - 1) {
+    if(r->grid[r->currentR - 1][r->currentC] != 2) {
+      r->currentR--;
+    } else {r->currentR++;}; 
+
     r->robotNumber++;
   } else if (r->currentR == 0) {
-    r->currentR++;
-    r->robotNumber++;
+    if(r->grid[r->currentR + 1][r->currentC] != 2) {
+      r->currentR++;
+    } else {r->currentR--;};
+
+    r->robotNumber++;;
   } else if (r->currentC == r->columns - 1) {
-    r->currentC--;
+    if(r->grid[r->currentR][r->currentC - 1] != 2) {
+      r->currentC--;
+    } else {r->currentC++;};
+
     r->robotNumber++;
   } else if (r->currentC == 0) {
-    r->currentC++;
+    if(r->grid[r->currentR][r->currentC + 1] != 2) {
+      r->currentC++;
+    } else {r->currentC--;};
+
     r->robotNumber++;
   } else {
 
@@ -131,65 +235,44 @@ bool moveRobot(robot *r, robot *robots, int numberOfRobots) {
 
     if(x == 0) {
       r->currentC++;
-    } else if(x == 2) {
+    } else if(x == 1) {
       r->currentC--;
-    } else if(x == 1) { 
+    } else if(x == 2) { 
       r->currentR++;
     } else if(x == 3) {
       r->currentR--;
     }
-  }
+  } 
 
   r->grid[r->currentR][r->currentC] = 2;
   r->numberOfMoves++;
-
-  for (int i = 0; i < 8; i++) {
-    if(r->cellsAround[i] == 1) {
-        int targetR = r->currentR;
-        int targetC = r->currentC;
-
-        switch(i) {
-          case '0':
-            targetR--; targetC--; break;
-          case '1':
-            targetC--; break;
-          case '2':
-            targetR++; targetC--; break;
-          case '3':
-            targetR--; break;
-          case '4':
-            targetR++; break;
-          case '5':
-            targetR--; targetC++; break;
-          case '6':
-            targetC++; break;
-          case '7':
-            targetR++; targetC++; break;
-          }
-        return true;
-	alert(robots, numberOfRobots, targetR, targetC);
-    }
-    //printf("%d", r->cellsAround[i]);
-  } //printf(", ");
-
-  //return r->grid;
-  return false;
 }
 
 
+// thread helper function
+//
+// @param *currentRobot		the current robot
+// @return r			the robot
 void * robotCommander(void *currentRobot) {
   robot *r = (robot *) currentRobot;
-  robotSearchAround(r);
+  //robotSearchAround(r);
   return r;
 }
 
+// creates and fills in information for each robot
+//
+// @param numberOfRobots	the number of robots
+// @param rows			number of rows in grid
+// @param columns		number of cols in grid
+// @param **grid		pointer to grid
+// @param *robots		list of threads
+// return currentRobot		list of robots
+robot * createRobots(int numberOfRobots, int rows, int columns, int **grid, pthread_t *robots) {
 
-robot * createRobots(int numberOfRobots, int rows, int columns, int **grid) {
-
-  pthread_t *robots;
   robot *currentRobot;
+  //pthread_t *robots;
 
-  robots = (pthread_t *)malloc(numberOfRobots * sizeof(pthread_t));
+  //robots = (pthread_t *)malloc(numberOfRobots * sizeof(pthread_t));
   currentRobot = (robot *)malloc(numberOfRobots * sizeof(robot)*numberOfRobots);
 
   for(int i = 0; i < numberOfRobots; i++) {
@@ -204,6 +287,8 @@ robot * createRobots(int numberOfRobots, int rows, int columns, int **grid) {
     }
 
     currentRobot[i].robotNumber = i;
+    currentRobot[i].num = i;
+    currentRobot[i].touchingRobot = false;
     currentRobot[i].initialR = randomR;
     currentRobot[i].currentR = randomR;
     currentRobot[i].initialC = currentRobot[i].currentC = randomC;
@@ -212,7 +297,6 @@ robot * createRobots(int numberOfRobots, int rows, int columns, int **grid) {
     currentRobot[i].columns = columns;
     currentRobot[i].grid = grid;
     currentRobot[i].cellsAround = (int*)calloc(8, sizeof(int));
-    currentRobot[i].btml = false;
    
     // place robot on the grid 
     grid[currentRobot[i].initialR][currentRobot[i].initialC] = 2;
@@ -222,6 +306,3 @@ robot * createRobots(int numberOfRobots, int rows, int columns, int **grid) {
 
   return currentRobot;
 }
-
-
-

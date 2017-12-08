@@ -7,6 +7,7 @@
 typedef struct {
 
   int robotNumber;
+  int num;
   int initialR;
   int initialC;
   int currentR;
@@ -21,14 +22,21 @@ typedef struct {
   int targetR;
   int targetC;
 
-  bool btml;
+  bool atTarget;
+
+  //bool active;
+  //bool passive;
+  bool touchingRobot;
 
 } robot;
+
+
 
 int **createGrid(int rows, int columns, int targetR, int targetC);
 void printGrid(int length, int width, int **grid);
 
-robot * createRobots(int numberOfRobots, int length, int width, int **grid);
-bool moveRobot(robot *r, robot *robots, int numberOfRobots);
-void robotSearchAround(robot *r);
+robot * createRobots(int numberOfRobots, int length, int width, int **grid, pthread_t *robots);
+void moveRobot(robot *r, int numberOfRobots);
+bool robotSearchAround(robot *r);
 void alert(robot *robots, int numberOfRobots, int targetR, int targetC); 
+void moveRobotsToTarget(robot *r,int numberOfRobots); 

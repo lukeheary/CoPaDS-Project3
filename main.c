@@ -17,7 +17,6 @@ int **createGrid(int rows, int columns, int targetR, int targetC) {
   }
 
   printf("\nTarget Coordinates: %d, %d \n\n", targetR, targetC);
-
   grid[targetR][targetC] = 1;
 
   return grid;
@@ -52,6 +51,17 @@ void printGrid(int rows, int columns, int **grid) {
 }
 
 
+bool checkRobots(robot *robots, int numberOfRobots) {
+
+  for(int i = 0; i < numberOfRobots; i++) {
+    if(robots[i].atTarget == false) {
+      return false;
+    }
+  }
+  return true;
+}
+
+
 int main(void) {
 
   int rows, columns, numberOfRobots;
@@ -67,31 +77,80 @@ int main(void) {
   int targetR = rand() % rows;
   int targetC = rand() % columns;
 
+  pthread_t *robotThreads;
+  robotThreads = (pthread_t *)malloc(numberOfRobots * sizeof(pthread_t));
+
+
   int **grid = createGrid(rows, columns, targetR, targetC);
-  robot *robots = createRobots(numberOfRobots, rows, columns, grid);
+  robot *robots = createRobots(numberOfRobots, rows, columns, grid, robotThreads);
 
-  // start cycling through moves
+  //initial print without any searchs
+  printGrid(rows, columns, grid);
+
   bool targetFound = false;
-  //for loop for move number
-  for(int moveNum = 0; moveNum < 30; moveNum++) {
 
-      //for loop for individual robot move
-      for(int robotNum = 0; robotNum < numberOfRobots; robotNum++) {
-          targetFound = moveRobot(&robots[robotNum], robots, numberOfRobots);
-          robotSearchAround(&robots[robotNum]);
-          printf("%d", targetFound);
-        if(targetFound == true) {
-          alert(robots, numberOfRobots, targetR, targetC);
-          for(int robotNum = 0; robotNum < numberOfRobots; robotNum++) {
-            moveRobotsToTarget(&robots[robotNum], robots, numberOfRobots); 
-        }
-      }
-
-    printGrid(rows, columns, grid);
+  //initial look around
+  for(int robotNum = 0; robotNum < numberOfRobots; robotNum++) {
+    targetFound = robotSearchAround(&robots[robotNum]);
   }
 
+  printGrid(rows, columns, grid);
+
+  //move robots and look around
+/**
+  while(targetFound == false) {
+    //for loop for individual robot move
+    for(int robotNum = 0; robotNum < numberOfRobots; robotNum++) {
+      if(targetFound == false) {
+        moveRobot(&robots[robotNum], numberOfRobots);
+        targetFound = robotSearchAround(&robots[robotNum]);
+      }
+    }
+    printGrid(rows, columns, grid);
+  }
+*/
+
+  for(int robotNum = 0; robotNum < numberOfRobots; robotNum++) {
+    if(targetFound == false) {
+      moveRobot(&robots[robotNum], numberOfRobots);
+      targetFound = robotSearchAround(&robots[robotNum]);
+    }
+  printGrid(rows, columns, grid);
+  }
+   
+
+
+
+
+  //TARGET FOUND
+  alert(robots, numberOfRobots, targetR, targetC);
+
+  bool allRobotsAtTarget = false;
+  allRobotsAtTarget = checkRobots(robots, numberOfRobots);
+
+  while(allRobotsAtTarget == false) {
+    for(int robotNum = 0; robotNum < numberOfRobots; robotNum++) {
+      moveRobotsToTarget(&robots[robotNum], numberOfRobots);
+      printf("%d", robots[robotNum].atTarget);
+    }
+    printGrid(rows, columns, grid);
+    allRobotsAtTarget = checkRobots(robots, numberOfRobots);
+  }
+
+
+  //print out statistics
+  printf("\n");
+  printf("Target surrounded. Number of moves:\n");
   for(int i = 0; i < numberOfRobots; i++) {
-    //pthread_join(robots[i], NULL);
+
+    printf("Robot Number %d: %d moves\n", robots[i].num, robots[i].numberOfMoves);    
+
+  }
+
+
+
+  for(int i = 0; i < numberOfRobots; i++) {
+    pthread_join(robotThreads[i], NULL);
   }
 
 }
