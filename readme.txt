@@ -12,7 +12,7 @@ To run my implementation of the Robot Attack, follow these steps:
   Side note: When you get to this step, the program may run into a segmentation
   fault. If this is the case, then just start from step 1 again. It runs into a
   segmentaiton fault around 20% of the time depending on the size of the grid and
-  number of robots and I didn't have time to find it.
+  number of robots and I ran out of time to find it.
 
   5. The program will then display the entire process of the robots finding the target
   6. Last, you're shown the time it was taken to find the target, as well as how many
